@@ -47,7 +47,7 @@ io.use((socket, next) => {
 const queue: Socket[] = [];
 
 io.on("connection", (socket) => {
-  console.log(`User: ${socket.id} connected`);
+  // console.log(`User: ${socket.id} connected`);
 
   socket.on("find_match", () => {
     if (queue.includes(socket)) {
@@ -58,7 +58,7 @@ io.on("connection", (socket) => {
       // No partner yet, enqueue self
       queue.push(socket);
       socket.emit("waiting");
-      console.log(`${socket.id} is waiting`);
+      // console.log(`${socket.id} is waiting`);
     } else {
       const partner = queue.shift()!;
 
@@ -68,24 +68,32 @@ io.on("connection", (socket) => {
       partner.join(roomId);
 
       socket.data.roomId = roomId;
-      socket.data.roomId = roomId;
+      partner.data.roomId = roomId;
 
       socket.emit("matched", { roomId });
       partner.emit("matched", { roomId });
-
-      console.log(`Matched ${socket.id} with ${partner.id} in ${roomId}`);
     }
   });
 
-  socket.on("chat_message", (payload: { roomId: string; message: string }) => {
-    const { roomId, message } = payload;
-
+  socket.on("chat_message", ({ roomId, message }) => {
     if (!roomId || !message) return;
 
     socket.to(roomId).emit("chat_message", {
       from: "Anonymous",
       message,
     });
+  });
+
+  socket.on("leave", ({ roomId }) => {
+    const index = queue.indexOf(socket);
+
+    if (index !== -1) {
+      queue.splice(index, 1);
+    }
+
+    socket.to(roomId).emit("partner_disconnected");
+    delete socket.data.roomId;
+    socket.leave(roomId);
   });
 
   socket.on("disconnect", () => {
@@ -95,7 +103,12 @@ io.on("connection", (socket) => {
       queue.splice(index, 1);
     }
 
-    console.log(`Disconnected: ${socket.id}`);
+    const roomId = socket.data.roomId;
+    if (roomId) {
+      socket.to(roomId).emit("partner_disconnected");
+      delete socket.data.roomId;
+      socket.leave(roomId);
+    }
   });
 });
 
