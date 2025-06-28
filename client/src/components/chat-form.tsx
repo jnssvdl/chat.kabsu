@@ -1,33 +1,22 @@
 import React, { useState } from "react";
-import { socket } from "../lib/socket";
-import type { Message } from "../types/message";
+import { useChat } from "./chat-context";
 
-export default function ChatForm({
-  setMessages,
-}: {
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
-}) {
+export default function ChatForm() {
+  const { sendMessage, isMatched } = useChat();
   const [message, setMessage] = useState("");
-
-  const sendMessage = () => {
-    if (!message.trim()) return;
-    socket.emit("message", { message });
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { from: socket.id, message },
-    ]);
-    setMessage("");
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    sendMessage();
+    sendMessage(message);
+    setMessage("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isMatched) return;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      sendMessage(message);
+      setMessage("");
     }
   };
 
@@ -39,7 +28,9 @@ export default function ChatForm({
         onKeyDown={handleKeyDown}
         placeholder="Type your message..."
       />
-      <button type="submit">Send</button>
+      <button type="submit" disabled={!isMatched}>
+        Send
+      </button>
     </form>
   );
 }
