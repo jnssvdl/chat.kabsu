@@ -23,8 +23,10 @@ export function GoogleLogin() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      localStorage.setItem("yappr_token", data.token);
+      localStorage.setItem("jwt", data.token);
       alert("Logged in!");
+
+      window.location.reload();
     } catch (err) {
       console.error(err);
       alert("Login failed.");
