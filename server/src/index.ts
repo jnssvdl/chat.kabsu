@@ -48,7 +48,14 @@ const queue: Socket[] = [];
 
 io.on("connection", (socket) => {
   socket.on("find", () => {
-    socket.rooms.clear();
+    // socket.rooms.clear();
+
+    for (const room of socket.rooms) {
+      if (room !== socket.id) {
+        socket.leave(room);
+      }
+    }
+
     if (queue.includes(socket)) {
       return;
     }
