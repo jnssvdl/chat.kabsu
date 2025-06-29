@@ -4,6 +4,7 @@ import type { Message } from "../types/message";
 
 type ChatContextType = {
   isConnected: boolean;
+  online: number;
   isWaiting: boolean;
   isMatched: boolean;
   isDisconnected: boolean;
@@ -18,6 +19,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnected, setIsConnected] = useState(socket.connected);
+  const [online, setOnline] = useState(0);
   const [isWaiting, setIsWaiting] = useState(false);
   const [isMatched, setIsMatched] = useState(false);
   const [isDisconnected, setIsDisconnected] = useState(false);
@@ -29,6 +31,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
     const onConnect = () => setIsConnected(true);
     const onDisconnect = () => setIsConnected(false);
+    const onOnline = (online: number) => setOnline(online);
 
     const onWaiting = () => setIsWaiting(true);
     const onMatched = () => {
@@ -47,6 +50,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
+    socket.on("online", onOnline);
 
     socket.on("waiting", onWaiting);
     socket.on("matched", onMatched);
@@ -58,6 +62,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
+      socket.off("online", onOnline);
 
       socket.off("waiting", onWaiting);
       socket.off("matched", onMatched);
@@ -94,6 +99,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     <ChatContext.Provider
       value={{
         isConnected,
+        online,
         isWaiting,
         isMatched,
         isDisconnected,

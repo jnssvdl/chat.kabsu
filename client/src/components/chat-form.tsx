@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useChat } from "./chat-context";
 import { socket } from "@/lib/socket";
+import { Button } from "./ui/button";
+import { SendHorizonal } from "lucide-react";
+import { Input } from "./ui/input";
 
 export default function ChatForm() {
   const { sendMessage, isMatched } = useChat();
@@ -35,16 +38,22 @@ export default function ChatForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
+    <form onSubmit={handleSubmit} className="flex gap-2">
+      <Input
         value={message}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder="Type your message..."
+        className="rounded-full"
       />
-      <button type="submit" disabled={!isMatched}>
-        Send
-      </button>
+      <Button
+        type="submit"
+        disabled={!isMatched}
+        variant="secondary"
+        size="icon"
+      >
+        <SendHorizonal />
+      </Button>
     </form>
   );
 }
