@@ -46,12 +46,7 @@ export default function ChatForm() {
         placeholder="Type your message..."
         className="rounded-full"
       />
-      <Button
-        type="submit"
-        disabled={!isMatched}
-        variant="secondary"
-        size="icon"
-      >
+      <Button type="submit" disabled={!isMatched} size="icon">
         <SendHorizonal />
       </Button>
     </form>
