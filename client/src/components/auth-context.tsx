@@ -2,13 +2,14 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 type AuthContextType = {
   isAuthenticated: boolean;
-  setAuthenticated: (value: boolean) => void;
+  loading: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Check if user is logged in on mount
   useEffect(() => {
@@ -17,16 +18,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const res = await fetch("/api/auth/me", {
           credentials: "include",
         });
-        setAuthenticated(res.ok);
+        if (!res.ok) throw new Error("Not authenticated");
+        setAuthenticated(true);
       } catch {
         setAuthenticated(false);
+      } finally {
+        setLoading(false);
       }
     };
     checkAuth();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setAuthenticated }}>
+    <AuthContext.Provider value={{ isAuthenticated, loading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,29 +1,31 @@
 import { ChatProvider } from "./components/chat-context";
 import { SocketProvider } from "./components/socket-context";
-import { AuthProvider, useAuth } from "./components/auth-context";
+import { AuthProvider } from "./components/auth-context";
 import Chat from "./pages/chat";
 import Login from "./pages/login";
-
-function AppContent() {
-  const { isAuthenticated } = useAuth();
-
-  if (isAuthenticated) {
-    return (
-      <SocketProvider>
-        <ChatProvider>
-          <Chat />
-        </ChatProvider>
-      </SocketProvider>
-    );
-  }
-
-  return <Login />;
-}
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./components/protected-route";
 
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <SocketProvider>
+                  <ChatProvider>
+                    <Chat />
+                  </ChatProvider>
+                </SocketProvider>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
     </AuthProvider>
   );
 }
