@@ -9,19 +9,14 @@ import jwt from "jsonwebtoken";
 
 import { v4 as uuidv4 } from "uuid";
 import cookieParser from "cookie-parser";
-import cookie from "cookie";
+import { parse } from "cookie";
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 
-app.use(
-  cors({
-    origin: "http://localhost:5173", // React dev server
-    credentials: true, // important for cookies
-  })
-);
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
@@ -35,7 +30,7 @@ const io = new Server(server, {
 
 io.use((socket, next) => {
   try {
-    const cookies = cookie.parse(socket.handshake.headers.cookie || "");
+    const cookies = parse(socket.handshake.headers.cookie || "");
     const token = cookies.token;
     if (!token) return next(new Error("No auth token"));
 
