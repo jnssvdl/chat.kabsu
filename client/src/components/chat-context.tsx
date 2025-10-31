@@ -61,14 +61,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     socket.on("message", onMessage);
 
     return () => {
-      socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
-      socket.off("online", onOnline);
-
-      socket.off("waiting", onWaiting);
-      socket.off("matched", onMatched);
-      socket.off("disconnected", onDisconnected);
-      socket.off("message", onMessage);
+      socket.removeAllListeners();
       socket.disconnect();
     };
   }, []);

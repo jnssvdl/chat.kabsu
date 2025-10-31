@@ -1,5 +1,6 @@
 import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../lib/firebase";
+import { Button } from "./ui/button";
 
 export function GoogleLogin() {
   const login = async () => {
@@ -33,5 +34,5 @@ export function GoogleLogin() {
     }
   };
 
-  return <button onClick={login}>Sign in with Google</button>;
+  return <Button onClick={login}>Sign in with Google</Button>;
 }
