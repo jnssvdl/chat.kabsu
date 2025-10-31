@@ -1,10 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { socket } from "../lib/socket";
+import { useSocket } from "./socket-context";
 import type { Message } from "../types/message";
 
 type ChatContextType = {
-  isConnected: boolean;
-  online: number;
   isWaiting: boolean;
   isMatched: boolean;
   isDisconnected: boolean;
@@ -18,8 +16,8 @@ type ChatContextType = {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isConnected, setIsConnected] = useState(socket.connected);
-  const [online, setOnline] = useState(0);
+  const { socket } = useSocket();
+
   const [isWaiting, setIsWaiting] = useState(false);
   const [isMatched, setIsMatched] = useState(false);
   const [isDisconnected, setIsDisconnected] = useState(false);
@@ -27,59 +25,48 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
-    socket.connect();
-
-    const onConnect = () => setIsConnected(true);
-    const onDisconnect = () => setIsConnected(false);
-    const onOnline = (online: number) => setOnline(online);
-
     const onWaiting = () => setIsWaiting(true);
     const onMatched = () => {
       setIsWaiting(false);
       setIsMatched(true);
+      setIsDisconnected(false);
     };
     const onDisconnected = () => {
       setIsMatched(false);
       setIsDisconnected(true);
       setIsTyping(false);
     };
-
     const onTyping = ({ typing }: { typing: boolean }) => setIsTyping(typing);
-
     const onMessage = (message: Message) =>
       setMessages((prev) => [...prev, message]);
-
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
-    socket.on("online", onOnline);
 
     socket.on("waiting", onWaiting);
     socket.on("matched", onMatched);
     socket.on("disconnected", onDisconnected);
-
     socket.on("typing", onTyping);
     socket.on("message", onMessage);
 
     return () => {
-      socket.removeAllListeners();
-      socket.disconnect();
+      socket.off("waiting", onWaiting);
+      socket.off("matched", onMatched);
+      socket.off("disconnected", onDisconnected);
+      socket.off("typing", onTyping);
+      socket.off("message", onMessage);
     };
-  }, []);
+  }, [socket]);
 
   const findMatch = () => {
     setMessages([]);
     setIsMatched(false);
     setIsDisconnected(false);
+    setIsWaiting(true);
     socket.emit("find");
   };
 
   const sendMessage = (message: string) => {
     if (!message.trim()) return;
     socket.emit("message", { message });
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { from: socket.id, message },
-    ]);
+    setMessages((prev) => [...prev, { from: socket.id, message }]);
   };
 
   const leaveRoom = () => {
@@ -87,13 +74,12 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     setIsWaiting(false);
     setIsMatched(false);
     setIsDisconnected(false);
+    setMessages([]);
   };
 
   return (
     <ChatContext.Provider
       value={{
-        isConnected,
-        online,
         isWaiting,
         isMatched,
         isDisconnected,
@@ -112,10 +98,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 // eslint-disable-next-line react-refresh/only-export-components
 export const useChat = () => {
   const context = useContext(ChatContext);
-
-  if (!context) {
-    throw new Error("useChat must be used within a ChatProvider");
-  }
-
+  if (!context) throw new Error("useChat must be used within a ChatProvider");
   return context;
 };

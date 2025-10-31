@@ -1,4 +1,3 @@
-// src/context/SocketContext.tsx
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { socket } from "../lib/socket";
 

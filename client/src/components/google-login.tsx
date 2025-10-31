@@ -15,16 +15,16 @@ export function GoogleLogin() {
 
       const idToken = await user.getIdToken();
 
-      const res = await fetch("/api/auth/firebase", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ token: idToken }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      localStorage.setItem("jwt", data.token);
       alert("Logged in!");
 
       window.location.reload();

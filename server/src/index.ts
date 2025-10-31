@@ -8,41 +8,49 @@ import { Server, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 
 import { v4 as uuidv4 } from "uuid";
+import cookieParser from "cookie-parser";
+import cookie from "cookie";
 
 dotenv.config();
 
 const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-app.use("/api/auth", authRoutes);
-
-app.get("/api/ping", (_, res) => res.send("pong"));
-
 const server = http.createServer(app);
+
+app.use(
+  cors({
+    origin: "http://localhost:5173", // React dev server
+    credentials: true, // important for cookies
+  })
+);
+app.use(express.json());
+app.use(cookieParser());
 
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
 io.use((socket, next) => {
-  const token = socket.handshake.auth.token;
-
-  // console.log("Token from client:", token);
-
   try {
+    const cookies = cookie.parse(socket.handshake.headers.cookie || "");
+    const token = cookies.token;
+    if (!token) return next(new Error("No auth token"));
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
     socket.data.user = decoded;
     next();
   } catch (err) {
-    console.error("Invalid JWT on socket", err);
+    console.error("Socket auth failed:", err);
     next(new Error("Authentication error"));
   }
 });
+
+app.use("/api/auth", authRoutes);
+
+app.get("/api/ping", (_, res) => res.send("pong"));
 
 const queue: Socket[] = [];
 // let online = 0;
