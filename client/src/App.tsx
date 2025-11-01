@@ -2,31 +2,37 @@ import { ChatProvider } from "./components/chat-context";
 import { SocketProvider } from "./components/socket-context";
 import { AuthProvider } from "./components/auth-context";
 import Chat from "./pages/chat";
-import Login from "./pages/login";
+import Home from "./pages/home";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/protected-route";
+import { Toaster } from "./components/ui/sonner";
+import NotFound from "./pages/not-found";
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <SocketProvider>
-                  <ChatProvider>
-                    <Chat />
-                  </ChatProvider>
-                </SocketProvider>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute>
+                  <SocketProvider>
+                    <ChatProvider>
+                      <Chat />
+                    </ChatProvider>
+                  </SocketProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+      <Toaster />
+    </>
   );
 }
 
