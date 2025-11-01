@@ -1,16 +1,22 @@
 import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../lib/firebase";
 import { Button } from "./ui/button";
+import { FaGoogle } from "react-icons/fa";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export function GoogleLogin() {
+  const navigate = useNavigate();
+
   const login = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
       // if (!user.email?.endsWith("@cvsu.edu.ph")) {
-      //   alert("Only @cvsu.edu.ph emails are allowed");
-      //   return;
+      //   // alert("Only @cvsu.edu.ph emails are allowed");
+      //   // return;
+      //   throw new Error("Only @cvsu.edu.ph emails are allowed");
       // }
 
       const idToken = await user.getIdToken();
@@ -25,14 +31,26 @@ export function GoogleLogin() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      alert("Logged in!");
+      // alert("Logged in!");
 
+      navigate("/chat");
       window.location.reload();
     } catch (err) {
-      console.error(err);
-      alert("Login failed.");
+      // alert("Login failed.");
+      if (err instanceof Error) {
+        console.error(err.message);
+        toast.error(err.message);
+      } else {
+        console.error("Unknown error", err);
+        toast.error("Login failed.");
+      }
     }
   };
 
-  return <Button onClick={login}>Sign in with Google</Button>;
+  return (
+    <Button onClick={login} className="rounded-full" size={"lg"}>
+      <FaGoogle className="mr-1" />
+      Sign in with Google
+    </Button>
+  );
 }
