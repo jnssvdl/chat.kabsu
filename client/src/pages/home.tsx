@@ -3,21 +3,21 @@ import { GoogleLogin } from "../components/google-login";
 import { useNavigate } from "react-router-dom";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { DotPattern } from "@/components/ui/dot-pattern";
 import { cn } from "@/lib/utils";
 import { FaShieldAlt, FaUserSecret } from "react-icons/fa";
 import { IoLogoFirebase } from "react-icons/io5";
 
 export default function Home() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const navigate = useNavigate();
 
   return (
     <>
       {/* header */}
-      <header className="fixed z-50 w-full border-b bg-transparent backdrop-blur-md">
+      <header className="fixed z-50 w-full border-b-2 bg-transparent backdrop-blur-md">
         <div className="container mx-auto flex max-w-screen-xl items-center justify-between p-4">
           <h1 className="font-bold">chat.kabsu</h1>
           <ModeToggle />
@@ -41,9 +41,7 @@ export default function Home() {
             time. No profile, just pure conversation.
           </p>
 
-          {loading ? (
-            <Loader2 className="mt-4 animate-spin" />
-          ) : isAuthenticated ? (
+          {isAuthenticated ? (
             <Button
               size={"lg"}
               className="group rounded-full"
@@ -66,7 +64,7 @@ export default function Home() {
       </div>
 
       {/* Some other stuff */}
-      <div className="from-primary-foreground/60 to-background border-t bg-gradient-to-t py-24">
+      <div className="from-primary-foreground/60 to-background border-t-2 bg-gradient-to-t py-24">
         <div className="container mx-auto max-w-screen-xl px-4">
           <h2 className="mb-12 text-center text-3xl font-semibold text-balance">
             What is chat.kabsu?
@@ -110,7 +108,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <footer className="from-primary-foreground/60 to-background border-t bg-gradient-to-b py-8">
+      <footer className="from-primary-foreground/60 to-background border-t-2 bg-gradient-to-b py-8">
         <div className="container mx-auto text-center">
           <p className="text-sm">
             &copy; {new Date().getFullYear()} chat.kabsu

@@ -66,7 +66,7 @@ export default function Chat() {
             </div>
           </div>
 
-          <div className="bg-background border-t p-4">
+          <div className="bg-background border-t-2 p-4">
             <ChatForm />
           </div>
         </div>
