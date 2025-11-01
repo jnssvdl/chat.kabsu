@@ -1,6 +1,7 @@
 import React from "react";
 import { useAuth } from "./auth-context";
 import { Navigate } from "react-router-dom";
+import { Loader } from "lucide-react";
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
@@ -10,8 +11,12 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader className="animate-spin" />
+      </div>
+    );
   }
 
-  return isAuthenticated ? children : <Navigate to={"/login"} replace />;
+  return isAuthenticated ? children : <Navigate to={"/"} replace />;
 }
