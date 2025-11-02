@@ -55,6 +55,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       dispatch({ type: "set_status", payload: "matched" });
     const onDisconnected = () =>
       dispatch({ type: "set_status", payload: "disconnected" });
+
     const onTyping = (typing: boolean) =>
       dispatch({ type: "typing", payload: typing });
     const onMessage = (message: Message) =>
@@ -63,6 +64,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     socket.on("waiting", onWaiting);
     socket.on("matched", onMatched);
     socket.on("disconnected", onDisconnected);
+
     socket.on("typing", onTyping);
     socket.on("message", onMessage);
 
@@ -76,7 +78,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   }, [socket]);
 
   const findMatch = () => {
-    dispatch({ type: "set_status", payload: "waiting" });
+    // dispatch({ type: "set_status", payload: "waiting" });
     dispatch({ type: "reset" });
     socket.emit("find");
   };

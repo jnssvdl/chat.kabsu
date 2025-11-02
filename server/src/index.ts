@@ -64,10 +64,6 @@ io.on("connection", (socket) => {
       }
     }
 
-    if (queue.includes(socket)) {
-      return;
-    }
-
     if (queue.length === 0) {
       // No partner yet, enqueue self
       queue.push(socket);
