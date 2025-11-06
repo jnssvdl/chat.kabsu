@@ -70,36 +70,36 @@ export default function Home() {
             What is chat.kabsu?
           </h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <div className="bg-card rounded-lg border p-6">
-              <h3 className="mb-4 text-center text-xl font-semibold text-balance">
-                <FaUserSecret className="mx-auto mb-4 text-3xl text-balance" />
+            <div className="group bg-card rounded-lg border p-6 transition-transform duration-300 ease-in-out hover:-translate-y-1.5 hover:shadow-sm">
+              <h3 className="mb-4 text-center text-xl font-semibold text-balance transition-transform duration-300 ease-in-out group-hover:-translate-y-1">
+                <FaUserSecret className="mx-auto mb-4 text-3xl text-balance transition-transform duration-300 ease-in-out group-hover:-translate-y-1" />
                 Anonymous Conversations
               </h3>
-              <p className="text-muted-foreground text-center">
+              <p className="text-muted-foreground text-center transition-transform duration-300 ease-in-out group-hover:-translate-y-1">
                 Connect with fellow CvSU peeps without revealing your identity.
                 This real-time communication is powered by Socket.IO, ensuring a
                 low latency experience.
               </p>
             </div>
 
-            <div className="bg-card rounded-lg border p-6">
-              <h3 className="mb-4 text-center text-xl font-semibold text-balance">
-                <IoLogoFirebase className="mx-auto mb-4 text-3xl text-balance" />
+            <div className="group bg-card rounded-lg border p-6 transition-transform duration-300 ease-in-out hover:-translate-y-1.5 hover:shadow-sm">
+              <h3 className="mb-4 text-center text-xl font-semibold text-balance transition-transform duration-300 ease-in-out group-hover:-translate-y-1">
+                <IoLogoFirebase className="mx-auto mb-4 text-3xl text-balance transition-transform duration-300 ease-in-out group-hover:-translate-y-1" />
                 Secure Authentication
               </h3>
-              <p className="text-muted-foreground text-center">
+              <p className="text-muted-foreground text-center transition-transform duration-300 ease-in-out group-hover:-translate-y-1">
                 We use Firebase Authentication to ensure that only verified
                 users can join. Your account is safe, with no sensitive data
                 stored on our end.
               </p>
             </div>
 
-            <div className="bg-card rounded-lg border p-6">
-              <h3 className="mb-4 text-center text-xl font-semibold text-balance">
-                <FaShieldAlt className="mx-auto mb-4 text-3xl text-balance" />
+            <div className="group bg-card rounded-lg border p-6 transition-transform duration-300 ease-in-out hover:-translate-y-1.5 hover:shadow-sm">
+              <h3 className="mb-4 text-center text-xl font-semibold text-balance transition-transform duration-300 ease-in-out group-hover:-translate-y-1">
+                <FaShieldAlt className="mx-auto mb-4 text-3xl text-balance transition-transform duration-300 ease-in-out group-hover:-translate-y-1" />
                 Your Data, Your Privacy
               </h3>
-              <p className="text-muted-foreground text-center">
+              <p className="text-muted-foreground text-center transition-transform duration-300 ease-in-out group-hover:-translate-y-1">
                 No messages are stored in our database. Your conversations are
                 secure, ephemeral, and private, ensuring your personal data
                 stays private.
