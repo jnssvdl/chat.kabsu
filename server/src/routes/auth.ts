@@ -10,9 +10,11 @@ router.post("/login", async (req, res) => {
   try {
     const decoded = await firebaseAdminAuth.verifyIdToken(token);
 
-    // if (!decoded.email?.endsWith("@cvsu.edu.ph")) {
-    //   return res.status(403).json({ message: "Email not allowed" });
-    // }
+    if (!decoded.email?.toLowerCase().endsWith("@cvsu.edu.ph")) {
+      return res
+        .status(403)
+        .json({ message: "Only @cvsu.edu.ph emails are allowed" });
+    }
 
     const appJwt = jwt.sign(
       { uid: decoded.uid, email: decoded.email },
@@ -23,7 +25,7 @@ router.post("/login", async (req, res) => {
     res.cookie("token", appJwt, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
@@ -38,7 +40,7 @@ router.post("/logout", (_, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
   return res.json({ message: "Logged out" });
 });
