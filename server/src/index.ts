@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth";
+import contactRoutes from "./routes/contact";
 
 import http from "http";
 import { Server, Socket } from "socket.io";
@@ -44,6 +45,7 @@ io.use((socket, next) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/contact", contactRoutes);
 
 app.get("/api/ping", (_, res) => res.send("pong"));
 
