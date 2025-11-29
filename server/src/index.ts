@@ -48,16 +48,9 @@ app.use("/api/auth", authRoutes);
 app.get("/api/ping", (_, res) => res.send("pong"));
 
 const queue: Socket[] = [];
-// let online = 0;
 
 io.on("connection", (socket) => {
-  // online++;
-
-  // io.emit("online", online);
-
   socket.on("find", () => {
-    // socket.rooms.clear();
-
     for (const room of socket.rooms) {
       if (room !== socket.id) {
         socket.leave(room);
@@ -67,7 +60,7 @@ io.on("connection", (socket) => {
     if (queue.length === 0) {
       // No partner yet, enqueue self
       queue.push(socket);
-      socket.emit("waiting");
+      // socket.emit("waiting");
     } else {
       const partner = queue.shift()!;
 
