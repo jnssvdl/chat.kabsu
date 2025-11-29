@@ -5,10 +5,7 @@ import { cn } from "@/lib/utils";
 import { FaShieldAlt, FaUserSecret } from "react-icons/fa";
 import { IoLogoFirebase } from "react-icons/io5";
 import Feature from "@/components/feature";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import ContactForm from "@/components/contact-form";
 
 export default function Home() {
   return (
@@ -73,37 +70,10 @@ export default function Home() {
           </h2>
           <p className="text-muted-foreground mb-6 text-center">
             We'd love to hear from you! Whether you have a question, feedback,
-            or just want to say hello, send us a message!
+            feature request or just want to say hello, send us a message!
           </p>
 
-          <form className="bg-card/40 flex flex-col gap-6 rounded-lg border p-6 shadow-sm">
-            <div className="flex flex-col gap-4 md:flex-row">
-              <div className="flex flex-1 flex-col gap-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" placeholder="Your name" />
-              </div>
-              <div className="flex flex-1 flex-col gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="you@example.com" />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="message">Message</Label>
-              <Textarea
-                id="message"
-                placeholder="Your message"
-                className="field-sizing-fixed min-h-0"
-                rows={4}
-              />
-            </div>
-
-            <div className="flex justify-end">
-              <Button type="submit" className="w-full md:w-auto">
-                Send
-              </Button>
-            </div>
-          </form>
+          <ContactForm />
         </div>
       </div>
 
