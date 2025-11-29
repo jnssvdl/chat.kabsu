@@ -2,7 +2,15 @@ import React, { createContext, useContext, useEffect, useReducer } from "react";
 import { useSocket } from "./socket-context";
 import type { Message } from "../types/message";
 
-type Status = "idle" | "waiting" | "matched" | "disconnected";
+/**
+ * Chat statuses:
+ * - idle: not in a chat
+ * - waiting: searching for a match
+ * - matched: connected with someone
+ * - disconnected: the other person left
+ * - left: you left the chat
+ */
+type Status = "idle" | "waiting" | "matched" | "disconnected" | "left";
 
 type ChatState = {
   status: Status;
@@ -62,14 +70,14 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     socket.on("matched", onMatched);
     socket.on("disconnected", onDisconnected);
 
-    socket.on("set_typing", onTyping);
-    socket.on("message", onMessage);
+    socket.on("typing", onTyping);
+    socket.on("receive_message", onMessage);
 
     return () => {
       socket.off("matched", onMatched);
       socket.off("disconnected", onDisconnected);
-      socket.off("set_typing", onTyping);
-      socket.off("message", onMessage);
+      socket.off("typing", onTyping);
+      socket.off("receive_message", onMessage);
     };
   }, [socket]);
 
@@ -81,13 +89,13 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
   const sendMessage = (message: string) => {
     if (!message.trim()) return;
-    socket.emit("message", { message });
+    socket.emit("send_message", { message });
     dispatch({ type: "add_message", payload: { from: socket.id, message } });
   };
 
   const leaveRoom = () => {
     socket.emit("leave");
-    dispatch({ type: "set_status", payload: "idle" });
+    dispatch({ type: "set_status", payload: "left" });
     // dispatch({ type: "clear_chat" });
   };
 

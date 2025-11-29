@@ -58,6 +58,19 @@ export default function Chat() {
                 </>
               )}
 
+              {status === "left" && (
+                <>
+                  <StatusText
+                    Icon={Unlink}
+                    text="You left the chat."
+                    className="text-destructive"
+                  />
+                  <div className="flex justify-center">
+                    <NewChat />
+                  </div>
+                </>
+              )}
+
               {status === "idle" && (
                 <div className="flex justify-center">
                   <NewChat />
