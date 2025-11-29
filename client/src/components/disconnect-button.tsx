@@ -1,4 +1,3 @@
-import React from "react";
 import { useChat } from "./chat-context";
 import { Button } from "./ui/button";
 import { Unlink } from "lucide-react";
