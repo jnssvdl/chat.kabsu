@@ -84,12 +84,12 @@ io.on("connection", (socket) => {
     socket.to(room).emit("typing", typing);
   });
 
-  socket.on("message", ({ message }) => {
+  socket.on("send_message", ({ message }) => {
     if (!message) return;
 
     const room = socket.data.room;
 
-    socket.to(room).emit("message", {
+    socket.to(room).emit("receive_message", {
       from: socket.id,
       message,
     });
