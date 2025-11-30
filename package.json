@@ -10,7 +10,7 @@
     "build": "npm run build:client && npm run build:server",
     "build:client": "cd client && npm run build",
     "build:server": "cd server && npm run build",
-    "start": "NODE_ENV=production node server/dist/index.js"
+    "start": "cd server && NODE_ENV=production node dist/index.js"
   },
   "keywords": [],
   "author": "",
