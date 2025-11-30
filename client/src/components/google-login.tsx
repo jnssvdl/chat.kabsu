@@ -13,7 +13,10 @@ export function GoogleLogin() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      if (!user.email?.toLowerCase().endsWith("@cvsu.edu.ph")) {
+      if (
+        process.env.NODE_ENV === "production" &&
+        !user.email?.toLowerCase().endsWith("@cvsu.edu.ph")
+      ) {
         toast.error("Only @cvsu.edu.ph emails are allowed");
         return;
       }

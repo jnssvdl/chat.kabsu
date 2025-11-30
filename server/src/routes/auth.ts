@@ -10,7 +10,10 @@ router.post("/login", async (req, res) => {
   try {
     const decoded = await firebaseAdminAuth.verifyIdToken(token);
 
-    if (!decoded.email?.toLowerCase().endsWith("@cvsu.edu.ph")) {
+    if (
+      process.env.NODE_ENV === "production" &&
+      !decoded.email?.toLowerCase().endsWith("@cvsu.edu.ph")
+    ) {
       return res
         .status(403)
         .json({ message: "Only @cvsu.edu.ph emails are allowed" });
