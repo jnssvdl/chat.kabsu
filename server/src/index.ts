@@ -3,14 +3,13 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth";
 import contactRoutes from "./routes/contact";
+import socketAuthMiddleware from "./middleware/socket-auth";
 
 import http from "http";
 import { Server, Socket } from "socket.io";
-import jwt from "jsonwebtoken";
 
 import { v4 as uuidv4 } from "uuid";
 import cookieParser from "cookie-parser";
-import { parse } from "cookie";
 import path from "path";
 
 dotenv.config();
@@ -22,35 +21,6 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
-const io = new Server(server, {
-  cors: {
-    origin:
-      process.env.NODE_ENV === "production"
-        ? "http://localhost:3000"
-        : "http://localhost:5173",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
-
-io.use((socket, next) => {
-  try {
-    const cookies = parse(socket.handshake.headers.cookie || "");
-    const token = cookies.token;
-    if (!token) return next(new Error("No auth token"));
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    socket.data.user = decoded;
-    next();
-  } catch (err) {
-    console.error("Socket auth failed:", err);
-    next(new Error("Authentication error"));
-  }
-});
-
-app.use("/api/auth", authRoutes);
-app.use("/api/contact", contactRoutes);
-
 // serve client
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../../client/dist")));
@@ -59,7 +29,23 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
+// routes
+app.use("/api/auth", authRoutes);
+app.use("/api/contact", contactRoutes);
+
 app.get("/api/ping", (_, res) => res.send("pong"));
+
+const io = new Server(server, {
+  cors: {
+    origin:
+      process.env.NODE_ENV === "production" ? "*" : "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+// middleware
+io.use(socketAuthMiddleware);
 
 const queue: Socket[] = [];
 
