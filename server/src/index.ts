@@ -49,7 +49,21 @@ io.use(socketAuthMiddleware);
 
 const queue: Socket[] = [];
 
+const onlineUsers = new Set<string>();
+
 io.on("connection", (socket) => {
+  const user: {
+    uid: string;
+    email: string;
+    iat: number;
+    exp: number;
+  } = socket.data.user;
+
+  if (user.uid) {
+    onlineUsers.add(user.uid);
+    io.emit("online_count", onlineUsers.size);
+  }
+
   socket.on("find", () => {
     for (const room of socket.rooms) {
       if (room !== socket.id) {
