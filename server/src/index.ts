@@ -126,6 +126,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
+    if (user.uid) {
+      onlineUsers.delete(user.uid);
+      io.emit("online_count", onlineUsers.size);
+    }
+
     const index = queue.indexOf(socket);
 
     if (index !== -1) {
