@@ -11,7 +11,7 @@ export default function ChatBubble({ message }: { message: Message }) {
       }`}
     >
       <div
-        className={`max-w-full transform rounded-2xl px-4 py-2 break-words ${
+        className={`max-w-4/5 transform rounded-2xl px-4 py-2 break-words ${
           isMe
             ? "bg-primary text-primary-foreground rounded-br-none"
             : "bg-accent text-accent-foreground rounded-tl-none"
