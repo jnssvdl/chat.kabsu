@@ -1,9 +1,9 @@
+// not needed anymore because auth with firebase is already handled in client via token
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import { firebaseAdminAuth } from "../lib/firebase-admin";
 
 const router = Router();
-
 router.post("/login", async (req, res) => {
   const { token } = req.body;
 
@@ -53,8 +53,9 @@ router.get("/me", (req, res) => {
   if (!token) return res.sendStatus(401);
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET!);
-    res.sendStatus(200);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+
+    res.status(200).json(decoded);
   } catch {
     res.sendStatus(401);
   }

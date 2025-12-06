@@ -1,26 +1,33 @@
-import jwt from "jsonwebtoken";
-import { parse } from "cookie";
-import { ExtendedError, Socket } from "socket.io";
+import { Socket } from "socket.io";
+import { firebaseAdminAuth } from "../lib/firebase-admin";
 
-import dotenv from "dotenv";
-dotenv.config();
-
-const socketAuth = (socket: Socket, next: (err?: ExtendedError) => void) => {
+export const socketAuthenticate = async (
+  socket: Socket,
+  next: (err?: Error) => void
+) => {
   try {
-    const cookies = parse(socket.handshake.headers.cookie || "");
-    const token = cookies.token;
+    const token =
+      socket.handshake.auth.token ||
+      socket.handshake.headers.authorization?.split("Bearer ")[1];
 
-    if (!token) return next(new Error("No auth token"));
+    if (!token) {
+      return next(new Error("No token provided"));
+    }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    const decoded = await firebaseAdminAuth.verifyIdToken(token);
 
-    socket.data.user = decoded;
+    if (
+      process.env.NODE_ENV === "production" &&
+      !decoded.email?.endsWith("@cvsu.edu.ph")
+    ) {
+      return next(new Error("Unauthorized domain"));
+    }
 
-    return next();
+    socket.user = decoded;
+
+    next();
   } catch (err) {
-    console.error("Socket auth failed:", err);
-    return next(new Error("Authentication error"));
+    console.error(err);
+    next(new Error("Invalid token"));
   }
 };
-
-export default socketAuth;
