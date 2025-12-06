@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
 export default function Home() {
-  const { isAuthenticated, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   if (loading) return;
@@ -69,7 +69,7 @@ export default function Home() {
             transition={{ delay: 0.35, duration: 0.6 }}
             className="flex flex-col gap-y-4"
           >
-            {isAuthenticated ? (
+            {user ? (
               <>
                 <Button
                   onClick={() => navigate("/chat")}

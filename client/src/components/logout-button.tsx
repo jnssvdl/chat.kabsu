@@ -12,9 +12,22 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "./auth-context";
+import { useNavigate } from "react-router-dom";
+import { socket } from "@/lib/socket";
 
 export default function LogoutButton() {
   const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    logout();
+
+    if (socket.connected) {
+      socket.disconnect();
+    }
+
+    navigate("/");
+  };
 
   return (
     <>
@@ -40,7 +53,9 @@ export default function LogoutButton() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={logout}>Continue</AlertDialogAction>
+            <AlertDialogAction onClick={handleLogout}>
+              Continue
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

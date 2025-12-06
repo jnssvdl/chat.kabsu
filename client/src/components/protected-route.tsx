@@ -8,19 +8,11 @@ type ProtectedRouteProps = {
 };
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, loading } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (loading) {
-    // return (
-    //   <div className="flex min-h-screen items-center justify-center">
-    //     <Loader className="animate-spin" />
-    //   </div>
-    // );
+  if (loading) return;
 
-    return null;
-  }
-
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to={"/"} replace />;
   }
 
