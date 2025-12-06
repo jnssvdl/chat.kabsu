@@ -1,41 +1,47 @@
 import { auth, provider } from "@/lib/firebase";
-import { socket } from "@/lib/socket";
-import { signInWithPopup } from "firebase/auth";
+import {
+  onAuthStateChanged,
+  onIdTokenChanged,
+  signInWithPopup,
+  type User,
+} from "firebase/auth";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 type AuthContextType = {
-  isAuthenticated: boolean;
+  user: User | null;
+  token: string | null;
   loading: boolean;
-  googleLogin: () => Promise<void>;
+  googleLogin: () => Promise<User | null>;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-
-  const checkAuth = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/me", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Not authenticated");
-      setIsAuthenticated(true);
-    } catch {
-      setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    checkAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const idToken = await currentUser.getIdToken();
+        setToken(idToken);
+      } else {
+        setToken(null);
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   const googleLogin = async () => {
@@ -45,62 +51,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (
         process.env.NODE_ENV === "production" &&
-        !user.email?.toLowerCase().endsWith("@cvsu.edu.ph")
+        !user.email?.endsWith("@cvsu.edu.ph")
       ) {
+        await auth.signOut();
+        setUser(null);
         toast.error("Only @cvsu.edu.ph emails are allowed");
-        return;
+        return null;
       }
 
-      const idToken = await user.getIdToken();
-
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ token: idToken }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      // alert("Logged in!");
-
-      setIsAuthenticated(true);
-      navigate("/chat");
+      setUser(user);
+      return user;
     } catch (err) {
-      // alert("Login failed.");
       if (err instanceof Error) {
-        console.error(err.message);
         toast.error(err.message);
-      } else {
-        console.error("Unknown error", err);
-        toast.error("Login failed.");
       }
+      return null;
     }
   };
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await auth.signOut();
 
-      if (socket.connected) {
-        socket.disconnect();
-      }
-
-      setIsAuthenticated(false);
-      navigate("/");
+      setUser(null);
     } catch (err) {
-      console.error("Logout failed:", err);
+      if (err instanceof Error) {
+        toast.error(err.message);
+      }
     }
   };
 
   return (
-    <AuthContext.Provider
-      value={{ isAuthenticated, loading, googleLogin, logout }}
-    >
+    <AuthContext.Provider value={{ user, token, loading, googleLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );
