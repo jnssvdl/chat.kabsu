@@ -5,6 +5,5 @@ const URL = import.meta.env.PROD
   : "http://localhost:3000";
 
 export const socket = io(URL, {
-  withCredentials: true,
   autoConnect: false,
 });

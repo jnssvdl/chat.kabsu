@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { socket } from "../lib/socket";
+import { useAuth } from "./auth-context";
 
 type SocketContextType = {
   socket: typeof socket;
@@ -10,11 +11,19 @@ const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnected, setIsConnected] = useState(socket.connected);
+  const { token } = useAuth();
 
   useEffect(() => {
-    // Connect on mount
-    if (!socket.connected) socket.connect();
+    if (!token) {
+      socket.disconnect();
+      return;
+    }
 
+    socket.auth = { token };
+    socket.connect();
+  }, [token]);
+
+  useEffect(() => {
     const onConnect = () => setIsConnected(true);
     const onDisconnect = () => setIsConnected(false);
 
