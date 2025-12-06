@@ -1,16 +1,14 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import authRoutes from "./routes/auth";
 import contactRoutes from "./routes/contact";
-import socketAuthMiddleware from "./middleware/socket-auth";
 
 import http from "http";
 import { Server, Socket } from "socket.io";
 
 import { v4 as uuidv4 } from "uuid";
-import cookieParser from "cookie-parser";
 import path from "path";
+import { socketAuthenticate } from "./middleware/socket-auth";
 
 dotenv.config();
 
@@ -19,7 +17,6 @@ const server = http.createServer(app);
 
 app.use(cors());
 app.use(express.json());
-app.use(cookieParser());
 
 // serve client
 if (process.env.NODE_ENV === "production") {
@@ -29,10 +26,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-// routes
-app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactRoutes);
-
 app.get("/api/ping", (_, res) => res.send("pong"));
 
 const io = new Server(server, {
@@ -40,26 +34,21 @@ const io = new Server(server, {
     origin:
       process.env.NODE_ENV === "production" ? true : "http://localhost:5173",
     methods: ["GET", "POST"],
-    credentials: true,
   },
 });
 
-// middleware
-io.use(socketAuthMiddleware);
+// socket io middleware
+io.use(socketAuthenticate);
 
 const queue: Socket[] = [];
 
 const onlineUsers = new Set<string>();
 
 io.on("connection", (socket) => {
-  const user: {
-    uid: string;
-    email: string;
-    iat: number;
-    exp: number;
-  } = socket.data.user;
+  const user = socket.user;
+  console.log(user);
 
-  if (user.uid) {
+  if (user?.uid) {
     onlineUsers.add(user.uid);
     io.emit("online_count", onlineUsers.size);
   }
@@ -104,7 +93,7 @@ io.on("connection", (socket) => {
     const room = socket.data.room;
 
     socket.to(room).emit("receive_message", {
-      from: socket.id,
+      from: socket.id, // TODO: Find a way to use user.uid instead of socket.id for everything
       message,
     });
   });
@@ -126,7 +115,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    if (user.uid) {
+    if (user?.uid) {
       onlineUsers.delete(user.uid);
       io.emit("online_count", onlineUsers.size);
     }
