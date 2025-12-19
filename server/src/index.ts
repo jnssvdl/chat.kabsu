@@ -42,11 +42,9 @@ io.use(authenticateSocket);
 
 let queue: string[] = []; // userId
 
-// think about the structure of map i should use
-
-// const map = new Map<string, Set<string>>(); // chatRoom => Set of userId
-
 const chatMap = new Map<string, { chatRoom: string; peerId: string }>(); // userId => { chatRoom, peerId }
+
+const onlineUsers = new Set<string>();
 
 io.on("connection", (socket) => {
   const userId = socket.user?.uid;
@@ -61,8 +59,8 @@ io.on("connection", (socket) => {
   const userRoom = `user:${userId}`;
   socket.join(userRoom);
 
-  // TODO: implement online count, create a new set or refer to chatMap?
-  socket.on("online_count", () => {});
+  onlineUsers.add(userId);
+  socket.emit("online_count", onlineUsers.size);
 
   socket.on("find_match", () => {
     if (queue.length === 0) {
@@ -83,11 +81,6 @@ io.on("connection", (socket) => {
 
       console.log("chatMap on matched: ", chatMap);
 
-      // const users = new Set<string>();
-      // users.add(userId);
-      // users.add(peerId);
-      // map.set(chatRoom, users);
-
       io.to(userRoom).socketsJoin(chatRoom);
       io.to(`user:${peerId}`).socketsJoin(chatRoom);
 
@@ -97,18 +90,16 @@ io.on("connection", (socket) => {
   });
 
   socket.on("typing", ({ typing }: { typing: boolean }) => {
-    const data = chatMap.get(userId);
-    if (!data) return;
+    const { chatRoom } = chatMap.get(userId) || {};
+    if (!chatRoom) return;
 
-    const { chatRoom } = data;
     socket.to(chatRoom).emit("typing", typing);
   });
 
   socket.on("send_message", ({ text }: { text: string }) => {
-    const data = chatMap.get(userId);
-    if (!data) return;
+    const { chatRoom } = chatMap.get(userId) || {};
+    if (!chatRoom) return;
 
-    const { chatRoom } = data;
     socket.to(chatRoom).emit("receive_message", {
       from: userId,
       text,
@@ -116,20 +107,16 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leave_room", () => {
-    const data = chatMap.get(userId);
-    if (!data) return;
+    const { chatRoom, peerId } = chatMap.get(userId) || {};
 
-    const { chatRoom, peerId } = data;
+    if (!chatRoom || !peerId) return;
 
     socket.to(chatRoom).emit("disconnected");
 
     console.log("chatRoom before: ", io.sockets.adapter.rooms.get(chatRoom));
 
-    // io.in(userRoom).socketsLeave(chatRoom);
-
     // clear the chatRoom
-    io.in(chatRoom).socketsLeave(chatRoom); // i think i should leave on chatRoom instead of userRoom
-
+    io.in(chatRoom).socketsLeave(chatRoom);
     console.log("chatRoom now: ", io.sockets.adapter.rooms.get(chatRoom));
 
     chatMap.delete(userId);
@@ -146,10 +133,8 @@ io.on("connection", (socket) => {
       // console.log("queue after disconnect: ", queue);
 
       // remove chatRoom
-      const data = chatMap.get(userId);
-      if (!data) return;
-
-      const { chatRoom, peerId } = data;
+      const { chatRoom, peerId } = chatMap.get(userId) || {};
+      if (!chatRoom || !peerId) return;
 
       // inform the client that peer have disconnected (bye)
       socket.to(chatRoom).emit("disconnected");
