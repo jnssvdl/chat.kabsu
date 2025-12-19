@@ -114,9 +114,16 @@ io.on("connection", (socket) => {
     const { chatRoom } = chatMap.get(userId) || {};
     if (!chatRoom) return;
 
-    socket.to(chatRoom).emit("receive_message", {
-      fromMe: socket.user?.uid === userId,
+    // all my user sockets
+    io.to(userRoom).emit("receive_message", {
       text,
+      fromMe: true,
+    });
+
+    // everyone else
+    socket.to(chatRoom).except(userRoom).emit("receive_message", {
+      text,
+      fromMe: false,
     });
   });
 
