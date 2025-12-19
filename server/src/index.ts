@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import contactRoutes from "./routes/contact";
 
 import http from "http";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
@@ -40,83 +40,107 @@ const io = new Server(server, {
 // socket io middleware
 io.use(authenticateSocket);
 
-let queue: Socket[] = [];
+let queue: string[] = []; // userId
 
-let userQueue: string[] = [];
+// think about the structure of map i should use
 
-const onlineUsers = new Set<string>();
+// const map = new Map<string, Set<string>>(); // chatRoom => Set of userId
+
+const userRoomMap = new Map<string, string>(); // userId => chatRoom
+
+// i think you can even make it userId => peerId (userId)
 
 io.on("connection", (socket) => {
-  const user = socket.user;
+  const userId = socket.user?.uid;
 
-  if (user) {
-    onlineUsers.add(user.uid);
-    io.emit("online_count", onlineUsers.size);
+  console.log("user:", userId);
+
+  if (!userId) {
+    socket.disconnect();
+    return;
   }
 
-  socket.on("find", () => {
+  const userRoom = `user:${userId}`;
+  socket.join(userRoom);
+
+  socket.on("find_match", () => {
     if (queue.length === 0) {
-      // No partner yet, enqueue self
-      queue.push(socket);
+      queue.push(userId); // enqueue user
+      // console.log("queue", queue);
     } else {
-      const partner = queue.shift()!;
+      if (queue.includes(userId)) return;
 
-      const room = uuidv4();
+      const peerId = queue.shift()!; // userId of peer
 
-      socket.join(room);
-      partner.join(room);
+      const chatId = uuidv4(); // generate chatId
 
-      socket.data.room = room;
-      partner.data.room = room;
+      const chatRoom = `chat:${chatId}`; // make chatRoom
 
-      socket.emit("matched");
-      partner.emit("matched");
+      // userRoomMap.set(userId, chatRoom);
+      // userRoomMap.set(peerId, chatRoom);
+
+      // const users = new Set<string>();
+      // users.add(userId);
+      // users.add(peerId);
+      // map.set(chatRoom, users);
+
+      io.to(userRoom).socketsJoin(chatRoom);
+      io.to(`user:${peerId}`).socketsJoin(chatRoom);
+
+      io.to(userRoom).emit("matched", chatRoom);
+      io.to(`user:${peerId}`).emit("matched", chatRoom);
     }
   });
 
-  socket.on("typing", (typing: boolean) => {
-    const room = socket.data.room;
-    if (!room) return;
+  socket.on(
+    "typing",
+    ({ chatRoom, typing }: { chatRoom: string; typing: boolean }) => {
+      if (!socket.rooms.has(chatRoom)) return;
 
-    socket.to(room).emit("typing", typing);
-  });
-
-  socket.on("send_message", ({ message }) => {
-    if (!message) return;
-
-    const room = socket.data.room;
-
-    socket.to(room).emit("receive_message", {
-      from: socket.id, // TODO: Find a way to use user.uid instead of socket.id for everything
-      message,
-    });
-  });
-
-  socket.on("leave", () => {
-    queue = queue.filter((s) => s !== socket);
-
-    const room = socket.data.room;
-
-    if (room) {
-      socket.to(room).emit("disconnected");
-      delete socket.data.room;
-      socket.leave(room);
+      socket.to(chatRoom).emit("typing", typing);
     }
+  );
+
+  socket.on(
+    "send_message",
+    ({ chatRoom, text }: { chatRoom: string; text: string }) => {
+      if (!socket.rooms.has(chatRoom) || !text) return;
+
+      console.log("userId: ", userId);
+
+      socket.to(chatRoom).emit("receive_message", {
+        from: userId,
+        text,
+      });
+    }
+  );
+
+  // TODO: leaving or disconnecting is basically ending the chat, make user that the sockets leave the current room
+  socket.on("leave_room", (chatRoom: string) => {
+    if (!socket.rooms.has(chatRoom)) return;
+
+    socket.to(chatRoom).emit("disconnected");
+
+    io.in(userRoom).socketsLeave(chatRoom);
+    // io.in(chatRoom).socketsLeave(chatRoom); // i think i should leave on chatRoom instead of userRoom
+  });
+
+  socket.on("disconnecting", () => {
+    // TODO: should not emit disconnected if there are still user sockets
+    const chatRoom = [...socket.rooms].find((room) => room.startsWith("chat:"));
+
+    if (!chatRoom) return;
+
+    socket.to(chatRoom).emit("disconnected");
+
+    io.in(userRoom).socketsLeave(chatRoom);
+    // io.in(chatRoom).socketsLeave(chatRoom); // same with this
   });
 
   socket.on("disconnect", () => {
-    if (user) {
-      onlineUsers.delete(user.uid);
-      io.emit("online_count", onlineUsers.size);
-    }
-
-    queue = queue.filter((s) => s !== socket);
-
-    const room = socket.data.room;
-    if (room) {
-      socket.to(room).emit("disconnected");
-      delete socket.data.room;
-      socket.leave(room);
+    if (Array.from(io.sockets.adapter.rooms.get(userRoom) || []).length === 0) {
+      queue = queue.filter((uid) => uid !== userId);
+      // console.log("queue after disconnect: ", queue);
     }
   });
 });
