@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { useSocket } from "./socket-context";
 import type { Message } from "../types/message";
-import { useAuth } from "./auth-context";
 
 /**
  * Chat statuses:
@@ -61,7 +60,6 @@ const initialState: ChatState = {
 };
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
   const { socket } = useSocket();
 
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -86,7 +84,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       dispatch({ type: "set_typing", payload: typing });
     };
 
-    // you still need the fromMe coming from the to make other user sockets recognize where it come from, in case future me forgot why B)
     const onReceiveMessage = (message: Message) => {
       dispatch({ type: "add_message", payload: message });
     };
@@ -116,9 +113,10 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const sendMessage = (text: string) => {
-    if (!text.trim() || !user) return;
+    if (!text.trim()) return;
+
     socket.emit("send_message", { text });
-    dispatch({ type: "add_message", payload: { fromMe: true, text } });
+    // dispatch({ type: "add_message", payload: { fromMe: true, text } });
   };
 
   const endChat = () => {
