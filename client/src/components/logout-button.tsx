@@ -47,14 +47,14 @@ export default function LogoutButton() {
               Are you sure you want to log out?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              You will be logged out of your account and will be redirected to
-              the home page.
+              You will be logged out of your account and will be disconnected
+              from the chat.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLogout}>
-              Continue
+            <AlertDialogAction onClick={handleLogout} asChild>
+              <Button variant={"destructive"}>Continue</Button>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
