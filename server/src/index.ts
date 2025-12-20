@@ -77,30 +77,36 @@ io.on("connection", (socket) => {
   }
 
   socket.on("find_match", () => {
-    if (queue.length === 0) {
-      queue.push(userId); // enqueue user
-      io.to(userRoom).emit("waiting");
-      // console.log("queue", queue);
-    } else {
-      if (queue.includes(userId) || chatMap.has(userId)) return;
+    // prevent duplicate queueing or rematching
+    if (queue.includes(userId) || chatMap.has(userId)) return;
 
-      const peerId = queue.shift()!; // userId of peer
+    // enqueue user
+    queue.push(userId);
+    console.log("on enqueue: ", queue);
+    io.to(userRoom).emit("waiting");
+
+    if (queue.length >= 2) {
+      // get two users
+      const userA = queue.shift()!;
+      const userB = queue.shift()!;
 
       const chatId = uuidv4(); // generate chatId
-
       const chatRoom = `chat:${chatId}`; // make chatRoom
 
-      // set their chatRoom and their peerId
-      chatMap.set(userId, { chatRoom, peerId });
-      chatMap.set(peerId, { chatRoom, peerId: userId });
+      // store match
+      chatMap.set(userA, { chatRoom, peerId: userB });
+      chatMap.set(userB, { chatRoom, peerId: userA });
 
-      console.log("chatMap on matched: ", chatMap);
+      console.log("chatMap on matched:", chatMap);
+      console.log("queue on match:", queue);
 
-      io.to(userRoom).socketsJoin(chatRoom);
-      io.to(`user:${peerId}`).socketsJoin(chatRoom);
+      // join sockets to room
+      io.to(`user:${userA}`).socketsJoin(chatRoom);
+      io.to(`user:${userB}`).socketsJoin(chatRoom);
 
-      io.to(userRoom).emit("matched");
-      io.to(`user:${peerId}`).emit("matched");
+      // notify both users
+      io.to(`user:${userA}`).emit("matched");
+      io.to(`user:${userB}`).emit("matched");
     }
   });
 
