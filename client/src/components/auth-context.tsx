@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return user;
     } catch (err) {
       if (err instanceof Error) {
-        toast.error(err.message);
+        console.error(err.message);
       }
       return null;
     }
