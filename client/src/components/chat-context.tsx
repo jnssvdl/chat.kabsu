@@ -68,6 +68,10 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const [onlineCount, setOnlineCount] = useState(0);
 
   useEffect(() => {
+    const onIdle = () => {
+      dispatch({ type: "set_status", payload: "idle" });
+    };
+
     const onWaiting = () => {
       dispatch({ type: "set_status", payload: "waiting" }); // when user is already waiting
       dispatch({ type: "clear_chat" });
@@ -89,6 +93,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       dispatch({ type: "add_message", payload: message });
     };
 
+    socket.on("idle", onIdle);
     socket.on("waiting", onWaiting);
 
     socket.on("matched", onMatched);
@@ -100,6 +105,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     socket.on("online_count", (count: number) => setOnlineCount(count));
 
     return () => {
+      socket.off("idle", onIdle);
       socket.off("waiting", onWaiting);
       socket.off("matched", onMatched);
       socket.off("chat_ended", onChatEnded);
@@ -116,14 +122,11 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const cancelFind = () => {
     if (state.status !== "waiting") return;
     socket.emit("cancel_find");
-    dispatch({ type: "set_status", payload: "idle" });
   };
 
   const sendMessage = (text: string) => {
     if (!text.trim()) return;
-
     socket.emit("send_message", { text });
-    // dispatch({ type: "add_message", payload: { fromMe: true, text } });
   };
 
   const endChat = () => {
