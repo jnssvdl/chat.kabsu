@@ -40,8 +40,11 @@ export default function EndChat() {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={endChat} asChild>
-            <Button variant={"destructive"}>End chat</Button>
+          <AlertDialogAction
+            onClick={endChat}
+            className="bg-destructive hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 text-white shadow-xs"
+          >
+            End chat
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
