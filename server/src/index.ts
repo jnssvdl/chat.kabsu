@@ -113,6 +113,8 @@ io.on("connection", (socket) => {
   socket.on("cancel_find", () => {
     queue = queue.filter((uid) => uid !== userId);
 
+    io.to(userRoom).emit("idle");
+
     console.log("queue after cancelling: ", queue);
     console.log(`User ${userId} canceled find match`);
   });
