@@ -18,6 +18,8 @@ const server = http.createServer(app);
 app.use(cors());
 app.use(express.json());
 
+app.get("/api/ping", (_, res) => res.status(200).send("OK"));
+
 // serve client
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../../client/dist")));
@@ -27,7 +29,6 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.use("/api/contact", contactRoutes);
-app.get("/api/ping", (_, res) => res.send("pong"));
 
 const io = new Server(server, {
   cors: {
@@ -119,7 +120,7 @@ io.on("connection", (socket) => {
     console.log(`User ${userId} canceled find match`);
   });
 
-  socket.on("typing", ({ typing }: { typing: boolean }) => {
+  socket.on("type", ({ typing }: { typing: boolean }) => {
     const { chatRoom, peerId } = chatMap.get(userId) || {};
     if (!chatRoom || !peerId) return;
 
