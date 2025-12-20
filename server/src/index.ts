@@ -60,6 +60,7 @@ io.on("connection", (socket) => {
   socket.join(userRoom);
 
   onlineUsers.add(userId);
+  console.log(onlineUsers.size);
   socket.emit("online_count", onlineUsers.size);
 
   if (queue.includes(userId)) {
@@ -101,6 +102,13 @@ io.on("connection", (socket) => {
       io.to(userRoom).emit("matched");
       io.to(`user:${peerId}`).emit("matched");
     }
+  });
+
+  socket.on("cancel_find", () => {
+    queue = queue.filter((uid) => uid !== userId);
+
+    console.log("queue after cancelling: ", queue);
+    console.log(`User ${userId} canceled find match`);
   });
 
   socket.on("typing", ({ typing }: { typing: boolean }) => {
