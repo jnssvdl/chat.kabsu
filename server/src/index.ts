@@ -50,7 +50,7 @@ const onlineUsers = new Set<string>();
 io.on("connection", (socket) => {
   const userId = socket.user?.uid;
 
-  console.log("user:", userId);
+  // console.log("user:", socket.user);
 
   if (!userId) {
     socket.disconnect();
@@ -61,8 +61,7 @@ io.on("connection", (socket) => {
   socket.join(userRoom);
 
   onlineUsers.add(userId);
-  console.log(onlineUsers.size);
-  socket.emit("online_count", onlineUsers.size);
+  io.emit("online_count", onlineUsers.size);
 
   if (queue.includes(userId)) {
     io.to(userRoom).emit("waiting");
@@ -194,6 +193,10 @@ io.on("connection", (socket) => {
       chatMap.delete(userId);
       chatMap.delete(peerId);
       console.log("map after disconnect: ", chatMap);
+
+      // remove from current online users
+      onlineUsers.delete(userId);
+      io.emit("online_count", onlineUsers.size);
     }
   });
 });
